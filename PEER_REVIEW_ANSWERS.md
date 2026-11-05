@@ -171,10 +171,10 @@ Shows the `pipeline-workspace` PVC with:
 Real GitHub Actions job page for:
 
 ```text
-https://github.com/Krushnansh22/ci-cd-final-project/actions/runs/41989547014
+https://github.com/Krushnansh22/ci-cd-final-project/actions/runs/41990499065
 ```
 
-It shows the `build` job **succeeded in 34s**, with every step green:
+It shows the `build` job **succeeded in 32s**, with every step green:
 
 ```text
 Set up job
