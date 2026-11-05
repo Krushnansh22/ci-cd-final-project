@@ -1,0 +1,20 @@
+Application logs — counter-service (OpenShift namespace: sn-labs-krushnansh22)
+Container port: 8000
+
+[2026-11-05 07:20:19 +0000] [1] [INFO] Starting gunicorn 20.1.0
+[2026-11-05 07:20:19 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+[2026-11-05 07:20:19 +0000] [1] [INFO] Using worker: sync
+[2026-11-05 07:20:19 +0000] [7] [INFO] Booting worker with pid: 7
+[2026-11-05 07:20:19 +0000] [INFO] [log_handlers] Logging handler established
+[2026-11-05 07:20:19 +0000] [INFO] [__init__] **********************************************************************
+[2026-11-05 07:20:19 +0000] [INFO] [__init__] ******************  S E R V I C E   R U N N I N G  *******************
+[2026-11-05 07:20:19 +0000] [INFO] [__init__] **********************************************************************
+[2026-11-05 07:20:19 +0000] [INFO] [__init__] SERVICERUNNING on port 8000
+[2026-11-05 07:20:22 +0000] [INFO] [routes] Request to Create counter: demo...
+[2026-11-05 07:20:22 +0000] [INFO] [routes] Request to Update counter: demo...
+[2026-11-05 07:20:22 +0000] [INFO] [routes] Request to list all counters...
+
+GET /health -> {"status":"OK"}
+POST /counters/demo -> {"counter":0,"name":"demo"}
+PUT /counters/demo -> {"counter":1,"name":"demo"}
+GET /counters -> [{"counter":1,"name":"demo"}]

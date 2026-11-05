@@ -166,7 +166,7 @@ cleanup -> git-clone -> flake8 -> nose -> build-image -> deploy
 | Pipeline | `ci-cd-pipeline` | `.tekton/pipeline.yml` |
 | Tasks | `cleanup`, `flake8`, `nose` | `.tekton/tasks.yml` |
 | Hub tasks | `git-clone`, `buildah`, `openshift-client` | installed with `tkn hub` |
-| PVC | `pipeline-workspace` | `.tekton/pvc.yml` |
+| PVC | `pipeline-workspace` | `.tekton/pvc.yml`, 1 GiB on `skills-network-learner` |
 | Secret | `registry-dockerconfig-secret` | registry push credentials |
 
 ---
