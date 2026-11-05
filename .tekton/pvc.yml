@@ -1,0 +1,13 @@
+---
+# Persistent volume used as the shared workspace for every pipeline task.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pipeline-workspace
+spec:
+  storageClassName: skills-network-learner
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

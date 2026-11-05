@@ -1,0 +1,35 @@
+---
+# Example PipelineRun.
+#
+# Edit the three values marked CHANGE ME before applying:
+#   oc create -f .tekton/pipelinerun.yml
+#
+# or start it from the command line with tkn:
+#   tkn pipeline start ci-cd-pipeline --showlog ...
+apiVersion: tekton.dev/v1beta1
+kind: PipelineRun
+metadata:
+  generateName: ci-cd-pipeline-run-
+spec:
+  serviceAccountName: pipeline
+  pipelineRef:
+    name: ci-cd-pipeline
+
+  workspaces:
+    - name: shared-workspace
+      persistentVolumeClaim:
+        claimName: pipeline-workspace
+    - name: dockerconfig
+      secret:
+        secretName: registry-dockerconfig-secret
+
+  params:
+    # CHANGE ME: your GitHub repository
+    - name: repo-url
+      value: https://github.com/YOUR_GITHUB_ACCOUNT/ci-cd-final-project.git
+    # CHANGE ME: the branch to build
+    - name: revision
+      value: main
+    # CHANGE ME: the image to build and deploy
+    - name: image-reference
+      value: image-registry.openshift-image-registry.svc:5000/sn-labs-YOUR_USERNAME/ci-cd-final-project:latest

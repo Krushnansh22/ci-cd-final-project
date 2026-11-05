@@ -1,0 +1,128 @@
+---
+# The complete Tekton pipeline for the Hit Counter Service.
+#
+# It is the same pipeline that is assembled in the OpenShift web console for
+# the final project, expressed as YAML so it can be recreated with one command.
+#
+# Prerequisites (see README.md):
+#   - tasks.yml applied
+#   - the git-clone, buildah, and openshift-client tasks installed from Tekton Hub
+#   - a PVC named pipeline-workspace
+#   - a registry secret named registry-dockerconfig-secret
+#
+# Apply with:
+#   oc apply -f .tekton/pipeline.yml
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: ci-cd-pipeline
+spec:
+  description: Lint, test, build, and deploy the Hit Counter Service.
+
+  workspaces:
+    - name: shared-workspace
+    - name: dockerconfig
+
+  params:
+    - name: repo-url
+      type: string
+      description: Git repository to clone
+    - name: revision
+      type: string
+      default: main
+      description: Branch, tag, or commit to build
+    - name: image-reference
+      type: string
+      description: Fully qualified image name to build and deploy
+
+  tasks:
+    # 1. Start from an empty workspace
+    - name: cleanup
+      taskRef:
+        name: cleanup
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
+    # 2. Clone the source code
+    - name: git-clone
+      runAfter:
+        - cleanup
+      taskRef:
+        name: git-clone
+      params:
+        - name: url
+          value: $(params.repo-url)
+        - name: revision
+          value: $(params.revision)
+        - name: deleteExisting
+          value: "true"
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+
+    # 3. Lint
+    - name: flake8
+      runAfter:
+        - git-clone
+      taskRef:
+        name: flake8
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
+    # 4. Unit tests
+    - name: nose
+      runAfter:
+        - flake8
+      taskRef:
+        name: nose
+      params:
+        - name: args
+          value: "-v --with-spec --spec-color --with-coverage --cover-package=service"
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+
+    # 5. Build and push the container image
+    - name: build-image
+      runAfter:
+        - nose
+      taskRef:
+        name: buildah
+      params:
+        - name: IMAGE
+          value: $(params.image-reference)
+        - name: DOCKERFILE
+          value: ./Dockerfile
+        - name: CONTEXT
+          value: .
+        - name: TLSVERIFY
+          value: "false"
+        - name: FORMAT
+          value: docker
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+        - name: dockerconfig
+          workspace: dockerconfig
+
+    # 6. Deploy to OpenShift and wait for the rollout
+    - name: deploy
+      runAfter:
+        - build-image
+      taskRef:
+        name: openshift-client
+      params:
+        - name: SCRIPT
+          value: |
+            set -e
+            echo "Deploying $(params.image-reference) ..."
+            sed -i "s|IMAGE_PLACEHOLDER|$(params.image-reference)|g" openshift/deployment.yaml
+            oc apply -f openshift/service.yaml
+            oc apply -f openshift/deployment.yaml
+            oc apply -f openshift/route.yaml
+            oc rollout status deployment/counter-service --timeout=180s
+      workspaces:
+        - name: manifest-dir
+          workspace: shared-workspace
